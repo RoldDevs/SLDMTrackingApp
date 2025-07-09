@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "96046852438",
+    "project_id": "sldm-tracking-app",
+    "storage_bucket": "sldm-tracking-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96046852438:android:3db8604e7b1e498a264ef7",
+        "android_client_info": {
+          "package_name": "app.sldm.sldmtrackingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE7gKAVjDufr8QvBbxr0Ot5vP5W8_PXww"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
