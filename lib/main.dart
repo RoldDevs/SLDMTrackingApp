@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sldmtrackingapp/landing/sldmscreen.dart';
+import 'package:sldmtrackingapp/landing/admin.dart';
+import 'package:sldmtrackingapp/providers/auth_provider.dart';
 import 'package:sldmtrackingapp/signin/signin.dart';
 import 'firebase_options.dart';
 
@@ -25,9 +25,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.black,
-          primary: Colors.black,
-          secondary: Colors.black,
+          seedColor: const Color(0xFF4CAF50),
+          primary: const Color(0xFF4CAF50),
+          secondary: const Color(0xFF4CAF50),
         ),
         useMaterial3: true,
       ),
@@ -36,22 +36,32 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Add this new widget to handle authentication state
+// Widget to handle authentication state
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // If the snapshot has user data, then they're already logged in
-        if (snapshot.hasData && snapshot.data != null) {
-          return const LandingPage();
+    final authState = ref.watch(authStateProvider);
+    
+    return authState.when(
+      data: (user) {
+        if (user != null) {
+          return const AdminPage();
+        } else {
+          return const SignIn();
         }
-        // Otherwise, they need to log in
-        return const SignIn();
       },
+      loading: () => const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(
+          child: Text('Authentication error: $error'),
+        ),
+      ),
     );
   }
 }
