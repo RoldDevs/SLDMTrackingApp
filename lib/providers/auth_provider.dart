@@ -58,8 +58,10 @@ class AuthRepository {
         password: password,
       );
       
+      final uid = userCredential.user!.uid;
+      
       // Save additional user data to Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+      await _firestore.collection('users').doc(uid).set({
         'email': email,
         'username': username,
         'contactNumber': contactNumber,
@@ -67,10 +69,51 @@ class AuthRepository {
         'createdAt': FieldValue.serverTimestamp(),
       });
       
+      // Create student record in students collection
+      await _firestore.collection('students').doc(uid).set({
+        'username': username,
+        'userUID': uid,
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      
+      // Create initial billing record
+      await _firestore.collection('billings').doc(uid).set({
+        'studentName': username,
+        'userUID': uid,
+        'email': email,
+        'description': 'Tuition fees',
+        'summary': 'Initial enrollment',
+        'remainingBalance': 15000,
+        'amount': 15000,
+        'paymentDueDates': [
+          {
+            'dueDate': _getNextMonthDate(),
+            'amount': 5000,
+          },
+          {
+            'dueDate': _getNextMonthDate(2),
+            'amount': 5000,
+          },
+          {
+            'dueDate': _getNextMonthDate(3),
+            'amount': 5000,
+          },
+        ],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      
       return userCredential;
     } catch (e) {
       rethrow;
     }
+  }
+
+  // Helper method to get date for next month(s)
+  String _getNextMonthDate([int monthsToAdd = 1]) {
+    final now = DateTime.now();
+    final nextMonth = DateTime(now.year, now.month + monthsToAdd, 1);
+    return '${nextMonth.year}-${nextMonth.month.toString().padLeft(2, '0')}-01';
   }
 
   // Sign out
