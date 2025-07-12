@@ -77,6 +77,7 @@ class _SignInState extends ConsumerState<SignIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFF46923c),
       body: SafeArea(
         bottom: false, // Don't pad the bottom with SafeArea
@@ -129,7 +130,7 @@ class _SignInState extends ConsumerState<SignIn> {
                           children: [
                             Expanded(
                               child: _buildNavItem(
-                                title: 'Login',
+                                title: 'Sign In',
                                 isActive: true,
                                 onTap: () {
                                   // Already on login page

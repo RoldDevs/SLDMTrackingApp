@@ -136,7 +136,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                           children: [
                             Expanded(
                               child: _buildNavItem(
-                                title: 'Login',
+                                title: 'Sign In',
                                 isActive: false,
                                 onTap: _navigateToSignIn,
                               ),
@@ -361,7 +361,34 @@ class _SignUpState extends ConsumerState<SignUp> {
                                     Expanded(child: Divider()),
                                   ],
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 10),
+                                const Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .center, // Optional for cleaner alignment
+                                  children: [
+                                    Expanded(child: Divider()),
+
+                                    Flexible(
+                                      flex: 0,
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16.0,
+                                        ),
+                                        child: Text(
+                                          'B1 L1 Salvador Avenue cor. Quirino \nHighway, Jordan Plains Quezon City',
+                                          textAlign: TextAlign
+                                              .center, // ✅ Center the text itself
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    Expanded(child: Divider()),
+                                  ],
+                                ),
                               ],
                             ),
                           ),

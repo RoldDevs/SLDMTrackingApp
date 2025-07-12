@@ -21,14 +21,17 @@ final authStateProvider = StreamProvider<User?>((ref) {
 final isAdminProvider = FutureProvider<bool>((ref) async {
   final user = ref.watch(firebaseAuthProvider).currentUser;
   if (user == null) return false;
-  
+
   // Check if the email is the admin email
-  return user.email == 'sldmcentralized@management.app';
+  return user.email == 'sldm@centralized.app';
 });
 
 // Auth repository provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(ref.watch(firebaseAuthProvider), ref.watch(firestoreProvider));
+  return AuthRepository(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(firestoreProvider),
+  );
 });
 
 class AuthRepository {
@@ -50,33 +53,31 @@ class AuthRepository {
   }
 
   // Sign up with email and password
-  Future<UserCredential> signUp(String email, String password, String username, String contactNumber) async {
+  Future<UserCredential> signUp(
+    String email,
+    String password,
+    String username,
+    String contactNumber,
+  ) async {
     try {
       // Create user with email and password
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      
+
       final uid = userCredential.user!.uid;
-      
-      // Save additional user data to Firestore
-      await _firestore.collection('users').doc(uid).set({
+
+      // Save user data to students collection instead of users collection
+      await _firestore.collection('students').doc(uid).set({
         'email': email,
         'username': username,
         'contactNumber': contactNumber,
-        'isAdmin': email == 'sldmcentralized@management.app',
+        'isAdmin': email == 'sldm@centralized.app',
         'createdAt': FieldValue.serverTimestamp(),
+        'userUID': uid,  // Add this line to store the userUID
       });
-      
-      // Create student record in students collection
-      await _firestore.collection('students').doc(uid).set({
-        'username': username,
-        'userUID': uid,
-        'email': email,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      
+
       // Create initial billing record
       await _firestore.collection('billings').doc(uid).set({
         'studentName': username,
@@ -87,22 +88,13 @@ class AuthRepository {
         'remainingBalance': 15000,
         'amount': 15000,
         'paymentDueDates': [
-          {
-            'dueDate': _getNextMonthDate(),
-            'amount': 5000,
-          },
-          {
-            'dueDate': _getNextMonthDate(2),
-            'amount': 5000,
-          },
-          {
-            'dueDate': _getNextMonthDate(3),
-            'amount': 5000,
-          },
+          {'dueDate': _getNextMonthDate(), 'amount': 5000},
+          {'dueDate': _getNextMonthDate(2), 'amount': 5000},
+          {'dueDate': _getNextMonthDate(3), 'amount': 5000},
         ],
         'createdAt': FieldValue.serverTimestamp(),
       });
-      
+
       return userCredential;
     } catch (e) {
       rethrow;

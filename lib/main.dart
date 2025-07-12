@@ -59,7 +59,21 @@ class AuthWrapper extends ConsumerWidget {
     return authState.when(
       data: (user) {
         if (user != null) {
-          return const AdminPage();
+          // Check if user is admin before navigating
+          final isAdminAsync = ref.watch(isAdminProvider);
+
+          return isAdminAsync.when(
+            data: (isAdmin) {
+              // Navigate based on role
+              return const AdminPage(); // AdminPage will handle the role-based UI
+            },
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, __) => const Scaffold(
+              body: Center(child: Text('Error checking user role')),
+            ),
+          );
         } else {
           return const SignIn();
         }
