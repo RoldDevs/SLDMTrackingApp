@@ -34,15 +34,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
       final allItems = snapshot.docs.map((doc) {
         final data = doc.data();
-        return {
-          'id': doc.id,
-          ...data,
-        };
+        return {'id': doc.id, ...data};
       }).toList();
 
       // Separate announcements and events
-      final announcements = allItems.where((item) => !(item['isEvent'] ?? false)).toList();
-      final events = allItems.where((item) => item['isEvent'] ?? false).toList();
+      final announcements = allItems
+          .where((item) => !(item['isEvent'] ?? false))
+          .toList();
+      final events = allItems
+          .where((item) => item['isEvent'] ?? false)
+          .toList();
 
       setState(() {
         _announcements = announcements;
@@ -115,9 +116,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Upcoming Events section
-                      if (_events.isNotEmpty) ...[  
+                      if (_events.isNotEmpty) ...[
                         const Text(
                           'Upcoming Events',
                           style: TextStyle(
@@ -133,18 +134,23 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                             itemCount: _events.length,
                             itemBuilder: (context, index) {
                               final event = _events[index];
-                              final timestamp = event['timestamp'] as Timestamp?;
+                              final timestamp =
+                                  event['timestamp'] as Timestamp?;
                               final formattedDate = timestamp != null
-                                  ? DateFormat('MMM dd, yyyy').format(timestamp.toDate())
+                                  ? DateFormat(
+                                      'MMM dd, yyyy',
+                                    ).format(timestamp.toDate())
                                   : 'Unknown date';
-                              
+
                               return Container(
                                 width: 280,
                                 margin: const EdgeInsets.only(right: 16),
                                 decoration: BoxDecoration(
                                   color: Colors.amber.shade50,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.amber.shade200),
+                                  border: Border.all(
+                                    color: Colors.amber.shade200,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +170,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
-                                              event['title'] ?? 'Untitled Event',
+                                              event['title'] ??
+                                                  'Untitled Event',
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -178,7 +185,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                       child: Padding(
                                         padding: const EdgeInsets.all(12),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               event['content'] ?? '',
@@ -188,23 +196,34 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                             const Spacer(),
                                             Row(
                                               children: [
-                                                const Icon(Icons.calendar_today, size: 16),
+                                                const Icon(
+                                                  Icons.calendar_today,
+                                                  size: 16,
+                                                ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  event['eventDate'] ?? 'Date not specified',
-                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                  event['eventDate'] ??
+                                                      'Date not specified',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                             const SizedBox(height: 4),
                                             Row(
                                               children: [
-                                                const Icon(Icons.location_on, size: 16),
+                                                const Icon(
+                                                  Icons.location_on,
+                                                  size: 16,
+                                                ),
                                                 const SizedBox(width: 4),
                                                 Expanded(
                                                   child: Text(
-                                                    event['eventLocation'] ?? 'Location not specified',
-                                                    overflow: TextOverflow.ellipsis,
+                                                    event['eventLocation'] ??
+                                                        'Location not specified',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ],
@@ -221,7 +240,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         ),
                         const SizedBox(height: 24),
                       ],
-                      
+
                       // Announcements section
                       const Text(
                         'Announcements',
@@ -244,9 +263,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                               itemCount: _announcements.length,
                               itemBuilder: (context, index) {
                                 final announcement = _announcements[index];
-                                final timestamp = announcement['timestamp'] as Timestamp?;
+                                final timestamp =
+                                    announcement['timestamp'] as Timestamp?;
                                 final formattedDate = timestamp != null
-                                    ? DateFormat('MMM dd, yyyy').format(timestamp.toDate())
+                                    ? DateFormat(
+                                        'MMM dd, yyyy',
+                                      ).format(timestamp.toDate())
                                     : 'Unknown date';
 
                                 return Card(
@@ -256,7 +278,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(16),
@@ -273,7 +296,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
-                                                announcement['title'] ?? 'Untitled',
+                                                announcement['title'] ??
+                                                    'Untitled',
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 16,
@@ -286,13 +310,17 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                       Padding(
                                         padding: const EdgeInsets.all(16),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(announcement['content'] ?? ''),
                                             const SizedBox(height: 16),
                                             Row(
                                               children: [
-                                                const Icon(Icons.access_time, size: 16),
+                                                const Icon(
+                                                  Icons.access_time,
+                                                  size: 16,
+                                                ),
                                                 const SizedBox(width: 8),
                                                 Text('Posted: $formattedDate'),
                                               ],

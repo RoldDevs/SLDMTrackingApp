@@ -489,16 +489,22 @@ class _AccountingScreenState extends State<AccountingScreen> {
                                             ) {
                                               final payment =
                                                   student['paymentDueDates'][i];
-                                              // Store both the CellValue version and String/numeric versions
-                                              final dueDateCell =
-                                                  (payment['dueDate'] ?? '')
-                                                      as CellValue;
+                                              // Create proper CellValue objects instead of casting
+                                              final dueDateCell = TextCellValue(
+                                                payment['dueDate'] ?? '',
+                                              );
                                               final dueDate =
                                                   payment['dueDate'] ?? '';
 
                                               final amountCell =
-                                                  (payment['amount'] ?? 0)
-                                                      as CellValue;
+                                                  payment['amount'] is int
+                                                  ? IntCellValue(
+                                                      payment['amount'] ?? 0,
+                                                    )
+                                                  : DoubleCellValue(
+                                                      (payment['amount'] ?? 0)
+                                                          .toDouble(),
+                                                    );
                                               final amount =
                                                   payment['amount'] ?? 0;
                                               final isPaid =
@@ -1446,50 +1452,62 @@ class _AccountingScreenState extends State<AccountingScreen> {
                   final amount = payment['amount'] ?? 0;
                   final isPaid = payment['paid'] ?? false;
 
-                  return CheckboxListTile(
+                  return ListTile(
                     title: Text('Due: $dueDate'),
                     subtitle: Text('₱${amount.toStringAsFixed(2)}'),
-                    value: isPaid,
-                    onChanged: (value) async {
-                      try {
-                        // Update the payment status
-                        final billingId = student['id'];
-                        final updatedPayments = List.from(
-                          student['paymentDueDates'],
-                        );
-                        updatedPayments[index]['paid'] = value;
+                    trailing: DropdownButton<String>(
+                      value: isPaid ? 'Paid' : 'Overdue',
+                      items: const [
+                        DropdownMenuItem(value: 'Paid', child: Text('Paid')),
+                        DropdownMenuItem(value: 'Overdue', child: Text('Overdue')),
+                      ],
+                      onChanged: (value) async {
+                        try {
+                          // Update the payment status
+                          final billingId = student['id'];
+                          final updatedPayments = List.from(
+                            student['paymentDueDates'],
+                          );
+                          final bool newPaidStatus = value == 'Paid';
+                          
+                          updatedPayments[index]['paid'] = newPaidStatus;
+                          updatedPayments[index]['approved'] = true; // Mark as approved by admin
 
-                        if (value == true) {
-                          updatedPayments[index]['paidDate'] = DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(DateTime.now());
-                        } else {
-                          // Remove paidDate if unmarking as paid
-                          updatedPayments[index].remove('paidDate');
-                        }
+                          if (newPaidStatus) {
+                            updatedPayments[index]['paidDate'] = DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(DateTime.now());
+                          } else {
+                            // Remove paidDate if marking as overdue
+                            updatedPayments[index].remove('paidDate');
+                          }
 
-                        await FirebaseFirestore.instance
-                            .collection('billings')
-                            .doc(billingId)
-                            .update({'paymentDueDates': updatedPayments});
+                          await FirebaseFirestore.instance
+                              .collection('billings')
+                              .doc(billingId)
+                              .update({
+                                'paymentDueDates': updatedPayments,
+                                'lastUpdated': FieldValue.serverTimestamp(), // Add timestamp for synchronization
+                              });
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              value == true
-                                  ? 'Payment recorded successfully'
-                                  : 'Payment unmarked successfully',
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                newPaidStatus
+                                    ? 'Payment marked as Paid'
+                                    : 'Payment marked as Overdue',
+                              ),
                             ),
-                          ),
-                        );
-                        Navigator.pop(context);
-                        _loadStudentData(); // Refresh the list
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error updating payment: $e')),
-                        );
-                      }
-                    },
+                          );
+                          Navigator.pop(context);
+                          _loadStudentData(); // Refresh the list
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error updating payment: $e')),
+                          );
+                        }
+                      },
+                    ),
                   );
                 })
               else

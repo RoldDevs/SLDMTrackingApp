@@ -22,8 +22,26 @@ final isAdminProvider = FutureProvider<bool>((ref) async {
   final user = ref.watch(firebaseAuthProvider).currentUser;
   if (user == null) return false;
 
-  // Check if the email is the admin email
-  return user.email == 'sldm@centralized.app';
+  // Check Firestore for user role instead of just email
+  try {
+    // First check students collection
+    final studentDoc = await ref
+        .read(firestoreProvider)
+        .collection('students')
+        .doc(user.uid)
+        .get();
+
+    if (studentDoc.exists) {
+      // If user exists in students collection, check isAdmin field
+      return studentDoc.data()?['isAdmin'] == true;
+    }
+
+    // If not found in students, check if this is the admin email
+    return user.email == 'sldm@centralized.app';
+  } catch (e) {
+    print('Error checking admin status: $e');
+    return false;
+  }
 });
 
 // Auth repository provider
@@ -31,14 +49,16 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     ref.watch(firebaseAuthProvider),
     ref.watch(firestoreProvider),
+    ref,  // Pass the ref to the repository
   );
 });
 
 class AuthRepository {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final ProviderRef _ref;  // Add this field
 
-  AuthRepository(this._auth, this._firestore);
+  AuthRepository(this._auth, this._firestore, this._ref);  // Update constructor
 
   // Sign in with email and password
   Future<UserCredential> signIn(String email, String password) async {
@@ -75,7 +95,7 @@ class AuthRepository {
         'contactNumber': contactNumber,
         'isAdmin': email == 'sldm@centralized.app',
         'createdAt': FieldValue.serverTimestamp(),
-        'userUID': uid,  // Add this line to store the userUID
+        'userUID': uid, // Add this line to store the userUID
       });
 
       // Create initial billing record
@@ -85,12 +105,12 @@ class AuthRepository {
         'email': email,
         'description': 'Tuition fees',
         'summary': 'Initial enrollment',
-        'remainingBalance': 15000,
-        'amount': 15000,
+        'remainingBalance': 0,
+        'amount': 0,
         'paymentDueDates': [
-          {'dueDate': _getNextMonthDate(), 'amount': 5000},
-          {'dueDate': _getNextMonthDate(2), 'amount': 5000},
-          {'dueDate': _getNextMonthDate(3), 'amount': 5000},
+          {'dueDate': _getNextMonthDate(), 'amount': 0},
+          {'dueDate': _getNextMonthDate(2), 'amount': 0},
+          {'dueDate': _getNextMonthDate(3), 'amount': 0},
         ],
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -111,5 +131,7 @@ class AuthRepository {
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
+    // Force refresh the isAdminProvider when signing out
+    _ref.refresh(isAdminProvider);  // Use _ref instead of ref
   }
 }
